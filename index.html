@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Тренажер по обучению работников</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #edf4f7;
+      font-family: Arial, sans-serif;
+      color: #17324d;
+    }
+
+    .trainer {
+      width: min(480px, calc(100vw - 12px));
+      max-height: min(500px, calc(100vh - 12px));
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      overflow-y: auto;
+      border: 1px solid #d7e4eb;
+      border-radius: 22px;
+      background:
+        radial-gradient(
+          circle at 100% 0,
+          #d9f2fa 0 72px,
+          transparent 73px
+        ),
+        linear-gradient(160deg, #ffffff, #f8fbfd);
+      box-shadow: 0 18px 45px rgba(23, 50, 77, 0.14);
+    }
+
+    .trainer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .kicker {
+      margin: 0;
+      color: #176b9b;
+      font-size: 10px;
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    .progress {
+      min-width: 52px;
+      padding: 5px 8px;
+      flex: 0 0 auto;
+      border: 1px solid #a8d5e7;
+      border-radius: 20px;
+      background: #ffffff;
+      color: #176b9b;
+      font-size: 11px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 390px;
+      font-size: clamp(20px, 5vw, 25px);
+      line-height: 1.06;
+      letter-spacing: -0.025em;
+    }
+
+    .situation {
+      margin: 0;
+      padding: 8px 10px;
+      border-left: 4px solid #f0a73f;
+      border-radius: 0 11px 11px 0;
+      background: #fff8e9;
+      color: #4e5964;
+      font-size: 11.5px;
+      line-height: 1.32;
+    }
+
+    .question {
+      margin: 1px 0 0;
+      font-size: 12.5px;
+      font-weight: 800;
+    }
+
+    .answers {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+    }
+
+    .answer {
+      min-height: 83px;
+      padding: 8px;
+      border: 2px solid #d7e4eb;
+      border-radius: 13px;
+      background: rgba(255, 255, 255, 0.96);
+      color: #17324d;
+      text-align: left;
+      cursor: pointer;
+      transition:
+        transform 0.15s ease,
+        border-color 0.15s ease,
+        background 0.15s ease;
+    }
+
+    .answer:hover {
+      transform: translateY(-2px);
+      border-color: #85bbd4;
+    }
+
+    .answer:focus-visible,
+    .main-button:focus-visible {
+      outline: 3px solid rgba(23, 107, 155, 0.25);
+      outline-offset: 2px;
+    }
+
+    .answer.selected {
+      border-color: #176b9b;
+      background: #e8f5fb;
+    }
+
+    .answer.correct {
+      border-color: #21855b;
+      background: #eaf8f1;
+    }
+
+    .answer.wrong {
+      border-color: #b74848;
+      background: #fff0ef;
+    }
+
+    .answer-top {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .answer-letter {
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border-radius: 7px;
+      background: #17324d;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .answer-title {
+      font-size: 11.5px;
+      font-weight: 800;
+      line-height: 1.15;
+    }
+
+    .answer-text {
+      display: block;
+      margin-top: 5px;
+      color: #61758a;
+      font-size: 10.5px;
+      line-height: 1.24;
+    }
+
+    .button-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 1px;
+    }
+
+    .main-button {
+      min-width: 137px;
+      min-height: 36px;
+      padding: 0 14px;
+      border: 0;
+      border-radius: 11px;
+      background: #176b9b;
+      color: #ffffff;
+      font-size: 11.5px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 6px 14px rgba(23, 107, 155, 0.2);
+    }
+
+    .main-button:disabled {
+      opacity: 0.4;
+      cursor: default;
+      box-shadow: none;
+    }
+
+    .feedback {
+      min-height: 50px;
+      padding: 8px 10px;
+      border: 1px solid #d7e4eb;
+      border-radius: 11px;
+      background: #ffffff;
+      color: #61758a;
+      font-size: 11.5px;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+    }
+
+    .feedback strong {
+      color: #17324d;
+    }
+
+    .feedback.good {
+      border-color: #a7d9c1;
+      background: #eaf8f1;
+      color: #28694e;
+    }
+
+    .feedback.bad {
+      border-color: #e9b2ae;
+      background: #fff0ef;
+      color: #8e3b3b;
+    }
+
+    .dots {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      min-height: 7px;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #cfdae1;
+      transition: 0.15s ease;
+    }
+
+    .dot.completed {
+      background: #83b9d1;
+    }
+
+    .dot.active {
+      width: 20px;
+      border-radius: 5px;
+      background: #176b9b;
+    }
+
+    @media (max-width: 390px) {
+      .trainer {
+        padding: 12px;
+        gap: 6px;
+        border-radius: 17px;
+      }
+
+      .situation {
+        padding: 7px 8px;
+        font-size: 10.5px;
+      }
+
+      .answers {
+        gap: 5px;
+      }
+
+      .answer {
+        min-height: 87px;
+        padding: 7px;
+      }
+
+      .answer-title,
+      .feedback {
+        font-size: 10.5px;
+      }
+
+      .answer-text {
+        font-size: 9.5px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main
+    class="trainer"
+    aria-label="Тренажер по обучению работников"
+  >
+    <div class="trainer-header">
+      <p class="kicker" id="sectionLabel"></p>
+      <span class="progress" id="progress"></span>
+    </div>
+
+    <h1 id="title"></h1>
+
+    <p class="situation" id="situation"></p>
+
+    <p class="question">Какое решение вы примете?</p>
+
+    <div
+      class="answers"
+      role="group"
+      aria-label="Варианты ответа"
+    >
+      <button
+        class="answer"
+        type="button"
+        data-index="0"
+        aria-pressed="false"
+      >
+        <span class="answer-top">
+          <span class="answer-letter">А</span>
+          <span class="answer-title"></span>
+        </span>
+
+        <span class="answer-text"></span>
+      </button>
+
+      <button
+        class="answer"
+        type="button"
+        data-index="1"
+        aria-pressed="false"
+      >
+        <span class="answer-top">
+          <span class="answer-letter">Б</span>
+          <span class="answer-title"></span>
+        </span>
+
+        <span class="answer-text"></span>
+      </button>
+    </div>
+
+    <div class="button-row">
+      <button
+        class="main-button"
+        type="button"
+        disabled
+      >
+        Проверить
+      </button>
+    </div>
+
+    <div
+      class="feedback"
+      role="status"
+      aria-live="polite"
+    >
+      Выберите вариант и проверьте решение.
+    </div>
+
+    <div class="dots" aria-hidden="true"></div>
+  </main>
+
+  <script>
+    const situations = [
+      {
+        section: "Совместительство и новый работник",
+
+        title: "Что назначить работникам?",
+
+        text:
+          "Слесарь уже прошел необходимое обучение. При внутреннем совместительстве сохранились условия труда, источники опасности, уровни профрисков и характер работы. Выпускник впервые начал трудовую деятельность и допущен к работе повышенной опасности.",
+
+        answers: [
+          {
+            title: "Назначить общий срок",
+
+            text:
+              "Слесарю — повторное обучение, новичку — инструктаж раз в шесть месяцев."
+          },
+          {
+            title: "Применить разные правила",
+
+            text:
+              "Слесарю не назначать обучение из-за совместительства, новичку — инструктаж раз в три месяца."
+          }
+        ],
+
+        correct: 1,
+
+        success:
+          "Пункт 7 освобождает слесаря от обучения из-за совместительства. Плановый срок сохраняется. Новичку проводите повторный инструктаж не реже раза в три месяца в течение первого года работы.",
+
+        error:
+          "Для слесаря выполнены условия пункта 7. Обучение из-за совместительства не требуется. Новичку нужен повторный инструктаж не реже раза в три месяца в течение первого года работы."
+      },
+
+      {
+        section: "Срок обучения по программе В",
+
+        title: "Какой срок поставить?",
+
+        text:
+          "Работник прошел обучение по программе В 15 сентября 2026 года. Для этой работы нормативные правовые акты не устанавливают отдельную периодичность обучения.",
+
+        answers: [
+          {
+            title: "До сентября 2029 года",
+
+            text:
+              "Назначить следующее обучение не позднее 15 сентября 2029 года."
+          },
+          {
+            title: "Только после изменений",
+
+            text:
+              "Не ставить дату и обучить работника только после изменения правил или технологии."
+          }
+        ],
+
+        correct: 0,
+
+        success:
+          "Если нормативные правовые акты не установили другой срок, обучение по программе В проводят не реже одного раза в три года.",
+
+        error:
+          "Для программы В нужен плановый срок. Если нормативные правовые акты не установили другой период, обучение проводят не реже одного раза в три года."
+      },
+
+      {
+        section: "Формат обучения первой помощи",
+
+        title: "Какой курс согласовать?",
+
+        text:
+          "Учебный центр предлагает провести обучение по первой помощи полностью дистанционно: показать приемы по видео и завершить курс онлайн-тестом.",
+
+        answers: [
+          {
+            title: "Весь курс онлайн",
+
+            text:
+              "Согласовать дистанционный формат для теории и практических занятий."
+          },
+          {
+            title: "Разделить форматы",
+
+            text:
+              "Непрактическую часть провести дистанционно, а практические занятия — очно."
+          }
+        ],
+
+        correct: 1,
+
+        success:
+          "Практические занятия по первой помощи нельзя проводить дистанционно. На них отводят не менее 50 процентов общего количества учебных часов.",
+
+        error:
+          "Просмотр видео не заменяет практическое занятие. Практику проводят без дистанционных технологий и отводят на нее не менее 50 процентов программы."
+      }
+    ];
+
+    const sectionLabel =
+      document.querySelector("#sectionLabel");
+
+    const progress =
+      document.querySelector("#progress");
+
+    const title =
+      document.querySelector("#title");
+
+    const situationText =
+      document.querySelector("#situation");
+
+    const answerButtons = [
+      ...document.querySelectorAll(".answer")
+    ];
+
+    const mainButton =
+      document.querySelector(".main-button");
+
+    const feedback =
+      document.querySelector(".feedback");
+
+    const dotsContainer =
+      document.querySelector(".dots");
+
+    let currentSituation = 0;
+    let selectedAnswer = null;
+    let answerChecked = false;
+
+    function renderDots() {
+      dotsContainer.innerHTML = "";
+
+      situations.forEach((item, index) => {
+        const dot = document.createElement("span");
+
+        dot.className = "dot";
+
+        if (index < currentSituation) {
+          dot.classList.add("completed");
+        }
+
+        if (index === currentSituation) {
+          dot.classList.add("active");
+        }
+
+        dotsContainer.appendChild(dot);
+      });
+    }
+
+    function renderSituation() {
+      const item = situations[currentSituation];
+
+      selectedAnswer = null;
+      answerChecked = false;
+
+      sectionLabel.textContent = item.section;
+
+      progress.textContent =
+        `${currentSituation + 1} из ${situations.length}`;
+
+      title.textContent = item.title;
+      situationText.textContent = item.text;
+
+      answerButtons.forEach((button, index) => {
+        button.className = "answer";
+        button.setAttribute("aria-pressed", "false");
+
+        button
+          .querySelector(".answer-title")
+          .textContent = item.answers[index].title;
+
+        button
+          .querySelector(".answer-text")
+          .textContent = item.answers[index].text;
+      });
+
+      mainButton.disabled = true;
+      mainButton.textContent = "Проверить";
+
+      feedback.className = "feedback";
+      feedback.textContent =
+        "Выберите вариант и проверьте решение.";
+
+      renderDots();
+    }
+
+    answerButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        selectedAnswer = Number(button.dataset.index);
+        answerChecked = false;
+
+        answerButtons.forEach((item) => {
+          item.className = "answer";
+          item.setAttribute("aria-pressed", "false");
+        });
+
+        button.classList.add("selected");
+        button.setAttribute("aria-pressed", "true");
+
+        mainButton.disabled = false;
+        mainButton.textContent = "Проверить";
+
+        feedback.className = "feedback";
+        feedback.textContent =
+          "Ответ выбран. Нажмите «Проверить».";
+      });
+    });
+
+    mainButton.addEventListener("click", () => {
+      const item = situations[currentSituation];
+
+      if (!answerChecked) {
+        answerChecked = true;
+
+        answerButtons.forEach((button) => {
+          button.classList.remove(
+            "selected",
+            "correct",
+            "wrong"
+          );
+        });
+
+        answerButtons[item.correct]
+          .classList.add("correct");
+
+        if (selectedAnswer === item.correct) {
+          feedback.className = "feedback good";
+
+          feedback.innerHTML =
+            `<strong>Верно.</strong> ${item.success}`;
+        } else {
+          answerButtons[selectedAnswer]
+            .classList.add("wrong");
+
+          feedback.className = "feedback bad";
+
+          feedback.innerHTML =
+            `<strong>Не совсем.</strong> ${item.error}`;
+        }
+
+        if (currentSituation < situations.length - 1) {
+          mainButton.textContent =
+            "Следующая ситуация";
+        } else {
+          mainButton.textContent =
+            "Пройти заново";
+        }
+
+        return;
+      }
+
+      if (currentSituation < situations.length - 1) {
+        currentSituation += 1;
+      } else {
+        currentSituation = 0;
+      }
+
+      renderSituation();
+    });
+
+    renderSituation();
+  </script>
+</body>
+</html>
